@@ -1,0 +1,55 @@
+
+name: CHAFIK CREDIT - Android Build
+
+on:
+  push:
+    paths:
+      - 'CHAFIK-CREDIT-Android-Project-v1.zip'
+      - '.github/workflows/bootstrap.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get project
+        uses: actions/checkout@v4
+
+      - name: Install Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Extract Android project
+        run: |
+          unzip -o CHAFIK-CREDIT-Android-Project-v1.zip -d .
+          rm -f CHAFIK-CREDIT-Android-Project-v1.zip
+
+      - name: Save extracted project
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Extract CHAFIK CREDIT Android project"
+            git push
+          fi
+
+      - name: Build APK
+        run: gradle --no-daemon assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CHAFIK-CREDIT-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
